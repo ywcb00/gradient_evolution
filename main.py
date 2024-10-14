@@ -3,7 +3,9 @@ import math
 import matplotlib.animation as animplt
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 import pandas as pd
+from pathlib import Path
 from sklearn.preprocessing import LabelEncoder
 import tensorflow as tf
 
@@ -39,6 +41,9 @@ match dataset_id:
         BATCH_SIZE = 15
         NUM_EPOCHS = 100
         LOSS = tf.keras.losses.CategoricalCrossentropy
+
+FIGURES_DIR = Path(f'figures_{dataset_id.name}')
+os.makedirs(FIGURES_DIR, exist_ok=True)
 
 # ===== Load data =====
 
@@ -94,8 +99,8 @@ def getCifar10Dataset():
     x_train = x_train.astype("float32") / 255
     x_test = x_test.astype("float32") / 255
 
-    x_train = x_train[1:3000]
-    y_train = y_train[1:3000]
+    # x_train = x_train[1:3000]
+    # y_train = y_train[1:3000]
 
     # one-hot encode the labels
     y_train = tf.keras.utils.to_categorical(y_train, num_classes)
@@ -118,8 +123,8 @@ def getCifar100Dataset():
     x_train = x_train.astype("float32") / 255
     x_test = x_test.astype("float32") / 255
 
-    x_train = x_train[1:3000]
-    y_train = y_train[1:3000]
+    # x_train = x_train[1:3000]
+    # y_train = y_train[1:3000]
 
     # one-hot encode the labels
     y_train = tf.keras.utils.to_categorical(y_train, num_classes)
@@ -450,8 +455,7 @@ def showGradients(i):
     showGrad(i)
     showAccGrad(i)
 anim = animplt.FuncAnimation(fig, showGradients, frames=NUM_EPOCHS, interval=1000)
-anim.save("animation.mp4")
-plt.show()
+anim.save(FIGURES_DIR/r'animation.mp4')
 
 
 # ===== Obtain the highest gradient elements =====
@@ -467,6 +471,7 @@ accgrad_layer_highest_elements = [[np.max(np.absolute(layer_grad.flatten())) / a
 accgrad_highest_elements = np.max(np.array(accgrad_layer_highest_elements), axis=0)
 accgrad_layer_highest_elements = list(zip(*accgrad_layer_highest_elements))
 
+plt.figure()
 for counter, glhe in enumerate(grad_layer_highest_elements):
     plt.plot(range(NUM_EPOCHS), glhe, label=f'Grad Layer {counter}')
 for counter, alhe in enumerate(accgrad_layer_highest_elements):
@@ -475,8 +480,7 @@ plt.title("Highest Gradient Elements")
 plt.legend(loc="upper center")
 ax = plt.gca()
 ax.get_yaxis().set_visible(False)
-plt.savefig("highestgradelement.png")
-plt.show()
+plt.savefig(FIGURES_DIR/r'highestgradelement.png')
 
 
 # ===== Compute statistics =====
@@ -508,6 +512,8 @@ statistics["metric"] = [metr[list(metr.keys())[-1]] for metr in metrics]
 def scaleToMax1(arr):
     return np.array(arr) / np.max(np.array(arr))
 
+plt.figure()
+
 plt.plot(range(1, NUM_EPOCHS+1), scaleToMax1(statistics["l1_norm"]), label="L1 Norm")
 # plt.plot(range(1, NUM_EPOCHS+1), scaleToMax1(statistics["l2_norm"]), label="L2 Norm")
 # plt.plot(scaleToMax1(range(0, len(statistics["l1_norm_individual"])))*NUM_EPOCHS, scaleToMax1(statistics["l1_norm_individual"]), label="L1 Norm Individual")
@@ -528,5 +534,4 @@ plt.plot(range(1, NUM_EPOCHS+1), scaleToMax1(statistics["metric"]), label="Metri
 plt.legend(loc="upper center")
 ax = plt.gca()
 ax.get_yaxis().set_visible(False)
-plt.savefig("statistics.png")
-plt.show()
+plt.savefig(FIGURES_DIR/r'statistics.png')
