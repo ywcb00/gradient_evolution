@@ -14,8 +14,9 @@ class DatasetID(Enum):
     Cifar10 = 3,
     Cifar100 = 4,
     Iris = 5
+    FordA = 6
 
-dataset_id = DatasetID.Mnist
+dataset_id = DatasetID.FordA
 
 seed = 13
 
@@ -40,6 +41,11 @@ match dataset_id:
         BATCH_SIZE = 15
         NUM_EPOCHS = 100
         LOSS = tf.keras.losses.CategoricalCrossentropy
+    case DatasetID.FordA:
+        BATCH_SIZE = 32
+        NUM_EPOCHS = 500
+        LOSS = tf.keras.losses.SparseCategoricalCrossentropy
+
 
 FIGURES_DIR = Path(f'figures_{dataset_id.name}')
 os.makedirs(FIGURES_DIR, exist_ok=True)
@@ -90,6 +96,8 @@ def getBostonHousingDataset():
     return train, val, test
 
 def getCifar10Dataset():
+    # https://www.geeksforgeeks.org/cifar-10-image-classification-in-tensorflow/
+
     num_classes = 10
 
     (x_train, y_train), (x_test, y_test) = tf.keras.datasets.cifar10.load_data()
@@ -114,6 +122,8 @@ def getCifar10Dataset():
     return train, val, test
 
 def getCifar100Dataset():
+    # https://www.geeksforgeeks.org/image-classification-using-cifar-10-and-cifar-100-dataset-in-tensorflow/
+
     num_classes = 100
     
     (x_train, y_train), (x_test, y_test) = tf.keras.datasets.cifar100.load_data()
@@ -138,6 +148,8 @@ def getCifar100Dataset():
     return train, val, test
 
 def getIrisDataset():
+    # https://machinelearningmastery.com/multi-class-classification-tutorial-keras-deep-learning-library/
+
     num_classes = 3
 
     df = pd.read_csv("data/iris.csv", header=None)
@@ -165,6 +177,32 @@ def getIrisDataset():
 
     return train, val, test
 
+def getFordADataset():
+    # https://keras.io/examples/timeseries/timeseries_classification_from_scratch/
+
+    train_data = np.loadtxt("https://raw.githubusercontent.com/hfawaz/cd-diagram/master/FordA/FordA_TRAIN.tsv")
+    test_data = np.loadtxt("https://raw.githubusercontent.com/hfawaz/cd-diagram/master/FordA/FordA_TEST.tsv")
+
+    x_train, y_train = (train_data[:, 1:], train_data[:, 0].astype(int))
+    x_test, y_test = (test_data[:, 1:], test_data[:, 0].astype(int))
+
+    x_train = x_train.reshape((x_train.shape[0], x_train.shape[1], 1))
+    x_test = x_test.reshape((x_test.shape[0], x_test.shape[1], 1))
+
+    num_classes = len(np.unique(y_train))
+
+    y_train[y_train == -1] = 0
+    y_test[y_test == -1] = 0
+
+    train = tf.data.Dataset.from_tensor_slices((x_train, y_train))
+    test = tf.data.Dataset.from_tensor_slices((x_test, y_test))
+
+    train, val = tf.keras.utils.split_dataset(train, left_size=0.9, right_size=None,
+        shuffle=True, seed=seed)
+
+    return train, val, test
+
+
 match dataset_id:
     case DatasetID.Mnist:
         train, val, test = getMnistDataset()
@@ -176,6 +214,8 @@ match dataset_id:
         train, val, test = getCifar100Dataset()
     case DatasetID.Iris:
         train, val, test = getIrisDataset()
+    case DatasetID.FordA:
+        train, val, test = getFordADataset()
 print(f'Found {train.cardinality().numpy()} train instances, {val.cardinality().numpy()} '
     + f'validation instances, and {test.cardinality().numpy()} test instances.')
 
@@ -337,6 +377,42 @@ def getIrisModel(data_element_spec):
 
     return model
 
+def getFordAModel(data_element_spec):
+    # https://keras.io/examples/timeseries/timeseries_classification_from_scratch/
+
+    num_classes = 2
+
+    model = tf.keras.Sequential()
+    
+    model.add(tf.keras.Input(shape=data_element_spec[0].shape))
+    model.add(tf.keras.layers.Conv1D(filters=64, kernel_size=3, padding="same",
+        kernel_initializer=tf.keras.initializers.GlorotUniform(seed=seed),
+        bias_initializer=tf.keras.initializers.Zeros()))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.ReLU())
+
+    model.add(tf.keras.layers.Conv1D(filters=64, kernel_size=3, padding="same",
+        kernel_initializer=tf.keras.initializers.GlorotUniform(seed=seed),
+        bias_initializer=tf.keras.initializers.Zeros()))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.ReLU())
+
+    model.add(tf.keras.layers.Conv1D(filters=64, kernel_size=3, padding="same",
+        kernel_initializer=tf.keras.initializers.GlorotUniform(seed=seed),
+        bias_initializer=tf.keras.initializers.Zeros()))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.ReLU())
+
+    model.add(tf.keras.layers.GlobalAveragePooling1D())
+    model.add(tf.keras.layers.Dense(num_classes, activation="softmax",
+        kernel_initializer=tf.keras.initializers.GlorotUniform(seed=seed),
+        bias_initializer=tf.keras.initializers.Zeros()))
+
+    optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001)
+    model.compile(optimizer=optimizer, loss=LOSS(),
+        metrics=[tf.metrics.SparseCategoricalCrossentropy(), tf.metrics.SparseCategoricalAccuracy()])
+
+    return model
 
 match dataset_id:
     case DatasetID.Mnist:
@@ -349,6 +425,8 @@ match dataset_id:
         model = getCifar100Model(train.element_spec)
     case DatasetID.Iris:
         model = getIrisModel(train.element_spec)
+    case DatasetID.FordA:
+        model = getFordAModel(train.element_spec)
 
 
 # ===== Fit model =====

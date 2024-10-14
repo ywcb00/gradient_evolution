@@ -1,9 +1,12 @@
-*.mp4
-*.png
 .python-version
 install
 uninstall
 run
+
+*.mp4
+*.png
+*.gif
+*.tsv
 
 # Created by https://www.toptal.com/developers/gitignore/api/python,venv
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,venv
