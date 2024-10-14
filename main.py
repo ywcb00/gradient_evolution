@@ -1,5 +1,4 @@
 from enum import Enum
-import math
 import matplotlib.animation as animplt
 import matplotlib.pyplot as plt
 import numpy as np
@@ -455,7 +454,7 @@ def showGradients(i):
     showGrad(i)
     showAccGrad(i)
 anim = animplt.FuncAnimation(fig, showGradients, frames=NUM_EPOCHS, interval=1000)
-anim.save(FIGURES_DIR/r'animation.mp4')
+anim.save(FIGURES_DIR/r'animation.gif', writer=animplt.PillowWriter(fps=1))
 
 
 # ===== Obtain the highest gradient elements =====
