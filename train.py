@@ -104,7 +104,7 @@ def getCifar10Model(data_element_spec, loss_obj, seed):
         kernel_initializer=tf.keras.initializers.GlorotUniform(seed=seed),
         bias_initializer=tf.keras.initializers.Zeros()))
 
-    optimizer = tf.keras.optimizers.SGD(learning_rate=0.01)
+    optimizer = tf.keras.optimizers.SGD(learning_rate=0.05)
     model.compile(optimizer=optimizer, loss=loss_obj(),
         metrics=[tf.metrics.CategoricalCrossentropy(), tf.metrics.CategoricalAccuracy()])
 
@@ -143,7 +143,7 @@ def getCifar100Model(data_element_spec, loss_obj, seed):
         kernel_initializer=tf.keras.initializers.GlorotUniform(seed=seed),
         bias_initializer=tf.keras.initializers.Zeros()))
 
-    optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
+    optimizer = tf.keras.optimizers.Adam(learning_rate=0.005)
     model.compile(optimizer=optimizer, loss=loss_obj(),
         metrics=[tf.metrics.CategoricalCrossentropy(), tf.metrics.CategoricalAccuracy()])
 
@@ -241,11 +241,11 @@ def buildAndFit(dataset_id, train, figures_dir, seed):
             NUM_EPOCHS = 100
             LOSS = tf.keras.losses.MeanSquaredError
         case DatasetID.Cifar10:
-            BATCH_SIZE = 32
+            BATCH_SIZE = 1024
             NUM_EPOCHS = 15
             LOSS = tf.keras.losses.CategoricalCrossentropy
         case DatasetID.Cifar100:
-            BATCH_SIZE = 64
+            BATCH_SIZE = 1024
             NUM_EPOCHS = 15
             LOSS = tf.keras.losses.CategoricalCrossentropy
         case DatasetID.Iris:
