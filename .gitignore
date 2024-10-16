@@ -2,11 +2,13 @@
 install
 uninstall
 run
+runPlot
 
 *.mp4
 *.png
 *.gif
 *.tsv
+*.pkl
 
 # Created by https://www.toptal.com/developers/gitignore/api/python,venv
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,venv
