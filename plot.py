@@ -214,9 +214,8 @@ def plotStatistics(gradients, individual_gradients, accumulated_gradients, metri
     statistics["l2_dissolving_norm_standardized"] = statistics["acc_l2_norm_standardized"] - statistics["l2_norm_acc_standardized"]
 
     # extract loss and additional metric
-    statistics["loss"] = [metr[list(metr.keys())[0]] for metr in metrics]
-    statistics["metric"] = [metr[list(metr.keys())[-1]] for metr in metrics]
-
+    statistics["metrics"] = {metr_name: [metr[metr_name] for metr in metrics] for metr_name in metrics[0].keys()}
+    statistics["metrics"].pop('loss')
 
     # ===== Scale data for plotting =====
     def scaleToMax1(arr):
@@ -321,9 +320,9 @@ def plotStatistics(gradients, individual_gradients, accumulated_gradients, metri
         plt.savefig(figures_dir/r'individual_gradients.png')
 
     plt.figure(figsize=(10, 8), dpi=300)
-    plt.plot(range(1, NUM_EPOCHS+1), scaleToMax1(statistics["loss"]), linestyle="-", marker="o", label="Loss")
-    plt.plot(range(1, NUM_EPOCHS+1), scaleToMax1(statistics["metric"]), linestyle="-", marker="o", label="Metric")
-    plt.title("Loss and Metric")
+    for metr_name, metr_arr in statistics["metrics"].items():
+        plt.plot(range(1, NUM_EPOCHS+1), scaleToMax1(metr_arr), linestyle="-", marker="o", label=metr_name)
+    plt.title("Loss and Metrics")
     plt.xlabel("# Epoch")
     plt.xticks(np.arange(1, NUM_EPOCHS+1, 1))
     ax = plt.gca()

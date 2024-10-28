@@ -33,8 +33,8 @@ def getMnistModel(data_element_spec, loss_obj, seed):
         learning_rate=0.01)
     keras_model.compile(optimizer=optimizer,
         loss=tf.keras.losses.CategoricalCrossentropy(),
-        metrics=[tf.metrics.CategoricalCrossentropy(),
-            tf.metrics.CategoricalAccuracy()])
+        metrics=[tf.metrics.CategoricalCrossentropy(name="Categorical Crossentropy"),
+            tf.metrics.CategoricalAccuracy(name="Categorical Accuracy")])
 
     return keras_model
 
@@ -52,7 +52,8 @@ def getBostonHousingModel(data_element_spec, loss_obj, seed):
 
     optimizer = tf.keras.optimizers.Adam(learning_rate=0.05)
     model.compile(optimizer=optimizer, loss=loss_obj(),
-        metrics=[tf.metrics.MeanSquaredError(), tf.metrics.MeanAbsoluteError()])
+        metrics=[tf.metrics.MeanSquaredError(name="Mean Squared Error"),
+            tf.metrics.MeanAbsoluteError(name="Mean Absolute Error")])
 
     return model
 
@@ -104,9 +105,10 @@ def getCifar10Model(data_element_spec, loss_obj, seed):
         kernel_initializer=tf.keras.initializers.GlorotUniform(seed=seed),
         bias_initializer=tf.keras.initializers.Zeros()))
 
-    optimizer = tf.keras.optimizers.SGD(learning_rate=0.05)
+    optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
     model.compile(optimizer=optimizer, loss=loss_obj(),
-        metrics=[tf.metrics.CategoricalCrossentropy(), tf.metrics.CategoricalAccuracy()])
+        metrics=[tf.metrics.CategoricalCrossentropy(name="Categorical Crossentropy"),
+            tf.metrics.CategoricalAccuracy(name="Categorical Accuracy")])
 
     return model
 
@@ -143,9 +145,10 @@ def getCifar100Model(data_element_spec, loss_obj, seed):
         kernel_initializer=tf.keras.initializers.GlorotUniform(seed=seed),
         bias_initializer=tf.keras.initializers.Zeros()))
 
-    optimizer = tf.keras.optimizers.Adam(learning_rate=0.005)
+    optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
     model.compile(optimizer=optimizer, loss=loss_obj(),
-        metrics=[tf.metrics.CategoricalCrossentropy(), tf.metrics.CategoricalAccuracy()])
+        metrics=[tf.metrics.CategoricalCrossentropy(name="Categorical Crossentropy"),
+            tf.metrics.CategoricalAccuracy(name="Categorical Accuracy")])
 
     return model
 
@@ -160,7 +163,8 @@ def getIrisModel(data_element_spec, loss_obj, seed):
 
     optimizer = tf.keras.optimizers.SGD(learning_rate=0.01)
     model.compile(optimizer=optimizer, loss=loss_obj(),
-        metrics=[tf.metrics.CategoricalCrossentropy(), tf.metrics.CategoricalAccuracy()])
+        metrics=[tf.metrics.CategoricalCrossentropy(name="Categorical Crossentropy"),
+            tf.metrics.CategoricalAccuracy(name="Categorical Accuracy")])
 
     return model
 
@@ -197,8 +201,8 @@ def getFordAModel(data_element_spec, loss_obj, seed):
 
     optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001)
     model.compile(optimizer=optimizer, loss=loss_obj(),
-        metrics=[tf.metrics.SparseCategoricalCrossentropy(),
-            tf.metrics.SparseCategoricalAccuracy()])
+        metrics=[tf.metrics.SparseCategoricalCrossentropy(name="Sparse Categorical Crossentropy"),
+            tf.metrics.SparseCategoricalAccuracy(name="Sparse Categorical Accuracy")])
 
     return model
 
@@ -214,14 +218,13 @@ def fitGradient(model, train, loss_obj):
         grad = tape.gradient(loss_value, model.trainable_variables)
         model.optimizer.apply_gradients(zip(grad, model.trainable_variables))
         grad = np.array([g.numpy() for g in grad], dtype=object)
-        individual_gradients.append(grad)
+        # individual_gradients.append(grad) # NOTE: huge amount of gradients for Cifar10 and Cifar100
         if(step == 0):
             accumulated_grad = grad.copy()
         else:
             accumulated_grad += grad
 
-    evaluation_scalars = model.evaluate(train, verbose=2)
-    scalar_train_metrics = dict(zip(model.metrics_names, evaluation_scalars))
+    scalar_train_metrics = model.evaluate(train, return_dict=True, verbose=2)
     if(train_metrics == None):
         train_metrics = {mname: [mval] for mname, mval in scalar_train_metrics.items()}
     else:
@@ -241,11 +244,11 @@ def buildAndFit(dataset_id, train, figures_dir, seed):
             NUM_EPOCHS = 100
             LOSS = tf.keras.losses.MeanSquaredError
         case DatasetID.Cifar10:
-            BATCH_SIZE = 1024
+            BATCH_SIZE = 32
             NUM_EPOCHS = 15
             LOSS = tf.keras.losses.CategoricalCrossentropy
         case DatasetID.Cifar100:
-            BATCH_SIZE = 1024
+            BATCH_SIZE = 64
             NUM_EPOCHS = 15
             LOSS = tf.keras.losses.CategoricalCrossentropy
         case DatasetID.Iris:
@@ -285,10 +288,10 @@ def buildAndFit(dataset_id, train, figures_dir, seed):
     filehandler = open(figures_dir/r'gradients.pkl', "wb")
     pickle.dump(gradients, filehandler)
     filehandler.close()
-    # save individual gradients to disk
-    filehandler = open(figures_dir/r'individual_gradients.pkl', "wb")
-    pickle.dump(individual_gradients, filehandler)
-    filehandler.close()
+    # save individual gradients to disk (NOTE: huge file size for Cifar10 and Cifar100)
+    # filehandler = open(figures_dir/r'individual_gradients.pkl', "wb")
+    # pickle.dump(individual_gradients, filehandler)
+    # filehandler.close()
     # save metrics to disk
     filehandler = open(figures_dir/r'metrics.pkl', "wb")
     pickle.dump(metrics, filehandler)
