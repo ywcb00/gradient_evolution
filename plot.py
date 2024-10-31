@@ -48,9 +48,9 @@ def plotAnimation(gradients, accumulated_gradients, figures_dir):
             q = int(np.prod([elem for idx, elem in enumerate(primfac) if idx % 2 == 1]))
             ax = fig.add_subplot(grad_gridspec[counter, 0])
             # layer-wise scaling between 0 and 1
-            # ax.imshow(np.absolute(layer_grad.reshape((min(p, q), max(p, q))) / grad_layer_scaling[counter]), vmin=0, vmax=1)
+            ax.imshow(np.absolute(layer_grad.reshape((min(p, q), max(p, q))) / grad_layer_scaling[counter]), vmin=0, vmax=1)
             # global scaling between 0 and 1
-            ax.imshow(np.absolute(layer_grad.reshape((min(p, q), max(p, q))) / grad_scaling), vmin=0, vmax=1)
+            # ax.imshow(np.absolute(layer_grad.reshape((min(p, q), max(p, q))) / grad_scaling), vmin=0, vmax=1)
             ax.set_axis_off()
 
     # Dissolving Gradients
@@ -73,10 +73,10 @@ def plotAnimation(gradients, accumulated_gradients, figures_dir):
             q = int(np.prod([elem for idx, elem in enumerate(primfac) if idx % 2 == 1]))
             ax = fig.add_subplot(dissgrad_gridspec[counter, 0])
             # layer-wise scaling of gradient between 0 and 1
-            # ax.imshow(np.absolute(layer_grad.reshape((min(p, q), max(p, q))) / dissgrad_layer_scaling[counter]), vmin=0, vmax=1)
+            ax.imshow(np.absolute(layer_grad.reshape((min(p, q), max(p, q))) / dissgrad_layer_scaling[counter]), vmin=0, vmax=1)
             # global scaling of gradient between 0 and 1
-            ax.imshow(np.absolute(layer_grad.reshape((min(p, q), max(p, q))) / dissgrad_scaling),
-                vmin=0, vmax=1)
+            # ax.imshow(np.absolute(layer_grad.reshape((min(p, q), max(p, q))) / dissgrad_scaling),
+            #     vmin=0, vmax=1)
             ax.set_axis_off()
 
     # Accumulated Gradients
@@ -96,10 +96,10 @@ def plotAnimation(gradients, accumulated_gradients, figures_dir):
             q = int(np.prod([elem for idx, elem in enumerate(primfac) if idx % 2 == 1]))
             ax = fig.add_subplot(accgrad_gridspec[counter, 0])
             # layer-wise scaling of gradient between 0 and 1
-            # ax.imshow(np.absolute(layer_grad.reshape((min(p, q), max(p, q))) / accgrad_layer_scaling[counter]), vmin=0, vmax=1)
+            ax.imshow(np.absolute(layer_grad.reshape((min(p, q), max(p, q))) / accgrad_layer_scaling[counter]), vmin=0, vmax=1)
             # global scaling of gradient between 0 and 1
-            ax.imshow(np.absolute(layer_grad.reshape((min(p, q), max(p, q))) / accgrad_scaling),
-                vmin=0, vmax=1)
+            # ax.imshow(np.absolute(layer_grad.reshape((min(p, q), max(p, q))) / accgrad_scaling),
+            #     vmin=0, vmax=1)
             ax.set_axis_off()
 
     def showGradients(i):
@@ -160,7 +160,8 @@ def plotHighestValue(gradients, accumulated_gradients, figures_dir):
 
     plt.title("Highest Gradient Elements")
     plt.xlabel("# Epoch")
-    plt.xticks(np.arange(1, NUM_EPOCHS+1, 1))
+    if(NUM_EPOCHS <= 20):
+        plt.xticks(np.arange(1, NUM_EPOCHS+1, 1))
     ax = plt.gca()
     ax.get_yaxis().set_visible(False)
     plt.legend([tuple(glhe_lines), tuple(alhe_lines)], ["Gradient Layers", "Accumulated Gradient Layers"],
@@ -294,16 +295,17 @@ def plotStatistics(gradients, individual_gradients, accumulated_gradients, metri
 
     plt.figure(figsize=(10, 8), dpi=300)
     plt.plot(range(1, NUM_EPOCHS+1), statistics["l1_norm_standardized"],
-        linestyle="-", marker="o", label="Norm of Gradient")
+        linestyle="-", marker="|", label="Norm of Gradient")
     plt.plot(range(1, NUM_EPOCHS+1), statistics["l1_norm_acc_standardized"],
-        linestyle="-", marker="o", label="Norm of Accumulated Gradient")
+        linestyle="-", marker="|", label="Norm of Accumulated Gradient")
     plt.plot(range(1, NUM_EPOCHS+1), statistics["acc_l1_norm_standardized"],
-        linestyle="-", marker="o", label="Accumulated Norm of Gradient")
+        linestyle="-", marker="|", label="Accumulated Norm of Gradient")
     plt.vlines(range(1, NUM_EPOCHS+1), statistics["l1_norm_acc_standardized"], statistics["acc_l1_norm_standardized"],
         linestyle="dashed", color="gray", label="Dissolving Gradient Norm")
     plt.title("Gradient Norm")
     plt.xlabel("# Epoch")
-    plt.xticks(np.arange(1, NUM_EPOCHS+1, 1))
+    if(NUM_EPOCHS <= 20):
+        plt.xticks(np.arange(1, NUM_EPOCHS+1, 1))
     plt.ylabel("L1 Norm")
     plt.legend(loc="upper left")
     plt.savefig(figures_dir/r'gradient_norms.png')
@@ -321,10 +323,11 @@ def plotStatistics(gradients, individual_gradients, accumulated_gradients, metri
 
     plt.figure(figsize=(10, 8), dpi=300)
     for metr_name, metr_arr in statistics["metrics"].items():
-        plt.plot(range(1, NUM_EPOCHS+1), scaleToMax1(metr_arr), linestyle="-", marker="o", label=metr_name)
+        plt.plot(range(1, NUM_EPOCHS+1), scaleToMax1(metr_arr), linestyle="-", marker="|", label=metr_name)
     plt.title("Loss and Metrics")
     plt.xlabel("# Epoch")
-    plt.xticks(np.arange(1, NUM_EPOCHS+1, 1))
+    if(NUM_EPOCHS <= 20):
+        plt.xticks(np.arange(1, NUM_EPOCHS+1, 1))
     ax = plt.gca()
     ax.get_yaxis().set_visible(False)
     plt.legend(loc="upper center")
@@ -340,7 +343,7 @@ def plotAll(dataset_id, gradients, individual_gradients, metrics, figures_dir):
     plotStatistics(gradients, individual_gradients, accumulated_gradients, metrics, figures_dir)
 
 def main():
-    dataset_id = DatasetID.Mnist
+    dataset_id = DatasetID.FordA
 
     FIGURES_DIR = Path(f'figures_{dataset_id.name}')
     os.makedirs(FIGURES_DIR, exist_ok=True)
