@@ -122,10 +122,10 @@ def plotHighestValue(gradients, accumulated_gradients, figures_dir):
     NUM_EPOCHS = len(gradients)
 
     # compute factors to scale the gradients to an overall maximum of 1 for the heatmap (layerwise or global)
-    grad_layer_scaling = [np.max(np.absolute(np.array(layer_grads).flatten()))
-        for layer_grads in zip(*gradients)]
-    grad_layer_scaling = [gls if gls != 0 else 1 for gls in grad_layer_scaling]
-    grad_scaling = np.max(np.array(grad_layer_scaling))
+    # grad_layer_scaling = [np.max(np.absolute(np.array(layer_grads).flatten()))
+    #     for layer_grads in zip(*gradients)]
+    # grad_layer_scaling = [gls if gls != 0 else 1 for gls in grad_layer_scaling]
+    # grad_scaling = np.max(np.array(grad_layer_scaling))
 
     accgrad_layer_scaling = [np.max(np.absolute(np.array(layer_grads).flatten()))
         for layer_grads in zip(*accumulated_gradients)]
@@ -133,7 +133,7 @@ def plotHighestValue(gradients, accumulated_gradients, figures_dir):
     accgrad_scaling = np.max(np.array(accgrad_layer_scaling))
 
     # ===== Obtain the highest gradient elements =====
-    grad_layer_highest_elements = [[np.max(np.absolute(layer_grad.flatten())) / grad_layer_scaling[counter]
+    grad_layer_highest_elements = [[np.max(np.absolute(layer_grad.flatten())) / accgrad_layer_scaling[counter]
             for counter, layer_grad in enumerate(grad)]
         for grad in gradients]
     grad_highest_elements = np.max(np.array(grad_layer_highest_elements), axis=0)
